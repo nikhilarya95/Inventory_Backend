@@ -44,6 +44,9 @@ router.post('/login', [
         lastName: user.lastName,
         username: user.username,
         email: user.email,
+        phone: user.phone,
+        aadharNumber: user.aadharNumber,
+        address: user.address,
         roles: user.roles
       }
     });

@@ -53,7 +53,7 @@ router.get('/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/check-credit/:customerId', auth, authorize('Admin', 'Manager'), async (req, res) => {
+router.post('/check-credit/:customerId', auth, authorize('Admin', 'Manager', 'Sales Man'), async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.customerId);
     if (!customer) {

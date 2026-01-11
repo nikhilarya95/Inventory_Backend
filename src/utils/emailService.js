@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const Company = require('../models/Company');
+
 
 class EmailService {
   constructor() {
@@ -167,7 +169,15 @@ class EmailService {
   }
 
   async sendCustomerDueAlert(salesManEmail, regularCustomers) {
-    const subject = 'Eligible Customer To take New Order';
+    let companyName = 'System';
+    try {
+      const company = await Company.findOne();
+      if (company) companyName = company.name;
+    } catch (err) {
+      console.error('Error fetching company for email:', err);
+    }
+
+    const subject = `${companyName}: Eligible Customers to take new order`;
 
     // 1. Array for EmailJS {{#each regular_customers}}
     const customerDataList = regularCustomers.map(c => ({
@@ -180,17 +190,18 @@ class EmailService {
 
     // 2. Pre-built HTML rows as a backup (variable: {{customer_rows}})
     const customerRowsHtml = regularCustomers.map(c => `
-      <tr style="background-color: #ffebee; border-bottom: 1px solid #ffcdd2;">
-        <td style="padding: 12px; border-right: 1px solid #ffcdd2;">${c.shopName || 'N/A'}</td>
-        <td style="padding: 12px; border-right: 1px solid #ffcdd2;">${c.firstName || 'N/A'} ${c.lastName || 'N/A'}</td>
-        <td style="padding: 12px; border-right: 1px solid #ffcdd2;">${c.phone || 'N/A'}</td>
-         <td style="padding: 12px; border-right: 1px solid #ffcdd2;">${c.address || 'N/A'}</td>
+      <tr style="border-bottom: 1px solid #eeeeee;">
+        <td style="padding: 10px 4px; font-size: 11px; color: #111111; font-weight: bold; width: 25%; word-break: break-word;">${c.shopName || 'N/A'}</td>
+        <td style="padding: 10px 4px; font-size: 10px; color: #444444; width: 20%; word-break: break-word;">${c.firstName || 'N/A'} ${c.lastName || 'N/A'}</td>
+        <td style="padding: 10px 4px; font-size: 10px; color: #444444; width: 25%; font-family: monospace;">${c.phone || 'N/A'}</td>
+        <td style="padding: 10px 4px; font-size: 10px; color: #666666; width: 30%; line-height: 1.2; word-break: break-word;">${c.address || 'N/A'}</td>
       </tr>
     `).join('');
 
-    return this.sendEmail(salesManEmail, subject, 'Eligible customers list update', {
+    return this.sendEmail(salesManEmail, subject, `These customers are eligible to take new orders from ${companyName}.`, {
       regular_customers: customerDataList,
-      customer_rows: customerRowsHtml
+      customer_rows: customerRowsHtml,
+      company_name: companyName
     });
   }
 

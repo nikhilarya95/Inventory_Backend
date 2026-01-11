@@ -56,7 +56,13 @@ router.post('/', auth, authorize('Admin', 'Sales Man'), [
   body('bill').notEmpty().withMessage('Bill is required'),
   body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
   body('modeOfPayment').isIn(['Cash', 'UPI', 'Net Banking', 'Cheque', 'Card'])
-    .withMessage('Please select mode of Payment')
+    .withMessage('Please select mode of Payment'),
+    body('transactionDate').optional().custom((value) => {
+    if (value && new Date(value) > new Date()) {
+      throw new Error('Transaction date cannot be in the future');
+    }
+    return true;
+  })
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

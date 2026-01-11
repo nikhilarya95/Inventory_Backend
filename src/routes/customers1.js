@@ -66,8 +66,8 @@ router.post('/', auth, authorize('Admin', 'Manager'), [
     }
 
     const customerId = req.body.customerId || generateCustomerId();
-
-    const query = { $or: [{ customerId }] };
+    
+const query = { $or: [{ customerId }] };
     if (req.body.email) {
       query.$or.push({ email: req.body.email.toLowerCase() });
     }
@@ -77,16 +77,10 @@ router.post('/', auth, authorize('Admin', 'Manager'), [
       return res.status(400).json({ message: 'Customer ID or email already exists' });
     }
 
-    const customerData = { ...req.body, customerId };
-
-    // Ensure email is either a valid lowercased string or removed entirely
-    if (customerData.email && customerData.email.trim()) {
-      customerData.email = customerData.email.trim().toLowerCase();
-    } else {
-      delete customerData.email;
-    }
-
-    const customer = new Customer(customerData);
+    const customer = new Customer({
+      ...req.body,
+      customerId
+    });
     await customer.save();
 
     res.status(201).json({ message: 'Customer created successfully', customer });
@@ -108,37 +102,13 @@ router.put('/:id', auth, authorize('Admin', 'Manager'), [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const updateData = { ...req.body };
-    delete updateData.customerId;
-
-    const finalUpdate = { $set: updateData };
-
-    // Handle email update logic carefully
-    if (req.body.hasOwnProperty('email')) {
-      const emailVal = req.body.email ? String(req.body.email).trim() : '';
-
-      if (emailVal) {
-        const emailLower = emailVal.toLowerCase();
-        // Check if new email is already taken by another customer
-        const duplicateEmail = await Customer.findOne({
-          email: emailLower,
-          _id: { $ne: req.params.id }
-        });
-        if (duplicateEmail) {
-          return res.status(400).json({ message: 'Email is already registered to another customer' });
-        }
-        updateData.email = emailLower;
-      } else {
-        // If email is empty or null, unset it from the document
-        finalUpdate.$unset = { email: 1 };
-        delete updateData.email;
-      }
-    }
+    const updates = { ...req.body };
+    delete updates.customerId;
 
     const customer = await Customer.findByIdAndUpdate(
       req.params.id,
-      finalUpdate,
-      { new: true, runValidators: true }
+      updates,
+      { new: true }
     );
 
     if (!customer) {

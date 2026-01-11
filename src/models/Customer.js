@@ -19,14 +19,21 @@ const customerSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: false,
+    unique: false,
     trim: true,
     lowercase: true,
-    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+    validate: {
+      validator: function (v) {
+        return !v || /^\w+([.-]?\w+)@\w+([.-]?\w+)(\.\w{2,3})+$/.test(v);
+      },
+      message: 'Please enter a valid email'
+    }
   },
   phone: {
     type: String,
     required: [true, 'Phone number is required'],
+    unique: true,
     match: [/^\d{10}$/, 'Phone number must be 10 digits']
   },
   shopName: {
