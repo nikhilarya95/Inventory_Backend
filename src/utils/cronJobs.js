@@ -74,9 +74,9 @@ const sendOrderReminders = async () => {
 };
 
 const initCronJobs = () => {
-  cron.schedule('0 9 * * *', checkLowStock);
+  // cron.schedule('0 9 * * *', checkLowStock);
   
-  cron.schedule('0 8 * * *', sendOrderReminders);
+  // cron.schedule('0 8 * * *', sendOrderReminders);
 
   console.log('Cron jobs initialized');
 };
